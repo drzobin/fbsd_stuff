@@ -1,0 +1,22 @@
+# Create GELI encrypt usb with key file and passphrase
+dmesg
+geom disk list
+gpart destroy -F da0
+gpart create -s GPT da0
+gpart add -t freebsd-ufs -i 1 da0
+dd if=/dev/random of=backup_home_server.key bs=256 count=1
+lsgeli init -s 4096 -K /root/master.key -e aes-xts -l 256  /dev/da0p1
+cp /var/backups/da0p1.eli backup_home_server.eli 
+geli attach -k /root/backup_home_server.key /dev/da0p1
+newfs /dev/da0p1.eli 
+mount /dev/da0p1.eli /mnt/usb01/
+
+# Mount
+dmesg
+geom disk list
+geli attach -k /root/backup_home_server.key /dev/da0p1
+mount /dev/da0p1.eli /mnt/usb01/
+
+# Unmount
+umount /mnt/usb01/
+geli detach /dev/da0p1.eli 
